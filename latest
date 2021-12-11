@@ -73,8 +73,9 @@ PUB Main
 
          'tetsing if i get any signal when i move forward
          'repeat
-           'Term.Str(String(13, "FORWARD"))
+           'Term.Str(String(13, "Move Forward"))
            'Term.Dec(signal)
+           
            }
 
 

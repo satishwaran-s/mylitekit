@@ -1,0 +1,112 @@
+{
+platform:       parallax project USB board
+revision:       1.0
+author:         s satishwaran
+date:           18 november 2021
+
+log:
+- date: desc
+- 18 november 2021: creating object file for ultrasonic sensors and tof sensors and comm control
+- 24 november 2021: added in motors to work alongside both sensors when in operation
+- 26 november 2021: tested with comm control
+- 27 november 2021: tested with a new loop to see if it is okay as now we are using it to be navigational with remote/XCTU
+- 28 november 2021: tested everything as a whole and edit the loop values
+- 30 november 2021: changed values to accomodate sensors
+
+}
+
+
+CON
+
+        _clkmode    = xtal1 + pll16x                                               'Standard clock mode * crystal frequency = 80 MHz
+        _xinfreq    = 5_000_000
+        _ConCLkFreq = ((_clkmode - xtal1) >> 6) * _xinfreq
+        _Ms_001     = _ConClkFreq /1_000
+
+
+VAR
+
+        long  mainToF1Val, mainToF2Val, mainUltra1Val, mainUltra2Val, signal
+
+OBJ
+
+        Term      : "FullDuplexSerial.spin"             'UART communication for debugging
+        Sensor    : "SensorControl.spin"                '<--- object/blackbox
+        Motors     : "MotorControl.spin"                '<--- object/blackbox
+        Comm      : "CommControl.spin"                  '<--- object/blackbox
+        'create a hardware definition file
+
+PUB Main
+
+         ' Declaration & Initilisation
+      'Term.Start(8, 9 ,0, 9600)
+      'Term.Start(31, 30 ,0, 115200)
+      'Pause(2000)                                     'wait 2 Seconds
+
+        Sensor.main(_Ms_001, @mainToF1Val, @mainToF2Val, @mainUltra1Val, @mainUltra2Val) 'calling sensorcontrol
+
+        Motors.main(_Ms_001)    'calling motors control
+
+        Comm.main(_Ms_001, @signal)   'calling comm control
+
+
+
+    ' Run & get reading
+    ' this is purely for testing purposes that's why i comment off one by one as i tested each lines
+        {
+    repeat
+
+      Term.Str(String(13, "Ultrasonic 1 Readings: "))
+      Term.Dec(mainUltra1Val)
+      'Pause(500)
+      Term.Str(String(13, "Ultrasonic 2 Readings: "))
+      Term.Dec(mainUltra2Val)
+      Term.Str(String(13, "ToF 1 Reading: "))
+      Term.Dec(mainToF1Val)
+      Term.Str(String(13, "ToF 2 Reading: "))
+      Term.Dec(mainToF2Val)
+      Pause(150)
+      Term.Tx(0)                                      'clears the terminal
+      'Motors.Forward
+      'Term.Str(String(13, "FORWARD"))
+      'Pause(2000)
+
+         'tetsing if i get any signal when i move forward
+         'repeat
+           'Term.Str(String(13, "FORWARD"))
+           'Term.Dec(signal)
+           }
+
+
+        repeat
+
+          if (signal == 1)
+            'Term.Str(String(13, "FORWARD"))
+            Motors.Forward '(i)
+            if (mainUltra1Val < 250 AND mainUltra1Val > 0 OR mainToF1Val > 200)
+              'long[signal] := 5
+              Motors.stopALLmotors
+
+          elseif (signal == 2)
+            Motors.Reverse '(i)
+            if (mainUltra2Val < 250 AND mainUltra2Val > 0 OR mainToF2Val > 200)
+               'long[signal] := 5
+              Motors.stopALLmotors
+
+          elseif (signal == 3)
+            Motors.TurnLeft '(i)
+          elseif (signal == 4)
+            Motors.TurnRight '(i)
+          elseif (signal == 5)
+            Motors.stopALLmotors
+
+
+
+
+
+PRI Pause (ms) | t
+
+        t := cnt -1088                                  'sync with system counter
+        repeat (ms #> 0)                                'dealy must be > 0
+          waitcnt (t += _Ms_001)
+        return

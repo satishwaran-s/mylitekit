@@ -27,7 +27,7 @@ CON
 
 VAR
 
-        long  mainToF1Val, mainToF2Val, mainUltra1Val, mainUltra2Val, signal
+        long  mainToF1Val, mainToF2Val, mainUltra1Val, mainUltra2Val, signl
 
 OBJ
 

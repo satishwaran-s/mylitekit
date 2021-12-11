@@ -12,6 +12,7 @@ log:
 - 27 november 2021: tested with a new loop to see if it is okay as now we are using it to be navigational with remote/XCTU
 - 28 november 2021: tested everything as a whole and edit the loop values
 - 30 november 2021: changed values to accomodate sensors
+- 12 December 2021: Test for actual interfacing
 
 }
 
